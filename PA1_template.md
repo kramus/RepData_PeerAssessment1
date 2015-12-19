@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output:
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 ##Introduction
   
 This is the first Project Assignment from the Reproducible Research course.
@@ -16,7 +11,8 @@ First of all, we gonna load packages and get the data:
 
 **Loading Packages**
   
-```{r loadpackages, warning=FALSE, message=FALSE}
+
+```r
 pack <- c("ggplot2", "dplyr")
 usePackage <- function(p) {
       if (!is.element(p, installed.packages()[,1]))
@@ -24,11 +20,16 @@ usePackage <- function(p) {
       require(p, character.only = TRUE)
 }
 sapply(pack, usePackage)
+```
 
+```
+## ggplot2   dplyr 
+##    TRUE    TRUE
 ```
 **Loading Activity Dataset**
 
-```{r loaddataset, cache=TRUE}
+
+```r
 fileurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 download.file(fileurl, destfile = ".\\Data_activity.zip")
 file <- unzip(".\\Data_activity.zip")
@@ -39,7 +40,8 @@ df <- read.csv(file)
 In order to calculate the mean total number of steps taken per day, we are
 going to use the pipeline approach from the `dplyr` package as follows:  
 
-```{r totalsteps}
+
+```r
 totalsteps <- df %>% group_by(date) %>% summarise_each(funs(sum), steps)
 #Calculate the mean and median
 options(scipen=999)
@@ -48,11 +50,12 @@ median_totalsteps <- median(totalsteps$steps, na.rm = TRUE)
 ```
 The mean and median of the total steps taken per day are:
   
-- **Media**: `r mean_totalsteps`  
-- **Median**: `r median_totalsteps`
+- **Media**: 10766  
+- **Median**: 10765
   
 A visualization of the total steps per day can be seen in the next histogram:
-```{r histogram}
+
+```r
 h <- ggplot(totalsteps, aes(steps)) 
 h + geom_histogram(binwidth = 2650, 
                    aes(fill = ..count..),
@@ -68,13 +71,15 @@ h + geom_histogram(binwidth = 2650,
         theme(axis.title = element_text(face = "bold", size = 14), 
               plot.title = element_text(face = "bold", size = 17, vjust = 1.5), 
               legend.position = "none")
-
 ```
+
+![](PA1_template_files/figure-html/histogram-1.png) 
   
 ##What is the average daily activity pattern?  
 In order to calculate the average daily activity pattern we are gonna use the 
 pipeline from the `dplyr` package:
-```{r avesteps}
+
+```r
 avgsteps <- df %>% group_by(interval) %>% 
             summarise_each(funs(round(mean(., na.rm = TRUE), digits = 2)), 
                            steps)
@@ -83,7 +88,8 @@ maxst <- as.data.frame(avgsteps[which.max(avgsteps$steps),])
   
 Now we proceed to create the time series:
 
-```{r timeseries}
+
+```r
 t <- ggplot(avgsteps, aes(interval, steps))
 t + geom_line(size = 1, color = "cornflowerblue") + 
       labs(title = "Average Number of Steps Taken per Interval") +
@@ -93,18 +99,21 @@ t + geom_line(size = 1, color = "cornflowerblue") +
       annotate("text", x = 1200, y = 210, label = "Interval: 835", 
                color = "red", size = 6)
 ```
+
+![](PA1_template_files/figure-html/timeseries-1.png) 
   
 From the above Figure, we can see that the 5-minute interval with the most activity
-was interval `r maxst$interval`.
+was interval 835.
 
 ##Imputing missing values
 
 The variable steps has multiple missing observations 
-(`r length(which(is.na(df$steps)))`). Let's see what happen if we imput those
+(2304). Let's see what happen if we imput those
 values. We are going to imput the NA values by replacing with the mean of steps
 from the specific 5-minute interval and create a new dataset:
 
-```{r imputing}
+
+```r
 data <- as.data.frame(df)
 #Using the means calculated and stored in the dataframe avgsteps:
 data <- within(data, steps <- ifelse(is.na(steps), 
@@ -118,12 +127,13 @@ median_tsteps <- median(tsteps$steps, na.rm = TRUE)
   
 The new mean and median of the total steps taken per day are:
   
-- **Media**: `r mean_tsteps`  
-- **Median**: `r median_tsteps`  
+- **Media**: 10766  
+- **Median**: 10762  
 
 And the respective graph:
 
-```{r histogram2}
+
+```r
 h2 <- ggplot(tsteps, aes(steps)) 
 h2 + geom_histogram(binwidth = 2650, 
                    aes(fill = ..count..),
@@ -140,9 +150,11 @@ h2 + geom_histogram(binwidth = 2650,
             plot.title = element_text(face = "bold", size = 20, vjust = 1.5), 
             legend.position = "none")
 ```
+
+![](PA1_template_files/figure-html/histogram2-1.png) 
   
 We can see that although the mean and median basically stayed the same (only
-the median changed from `r median_totalsteps` to `r median_tsteps`), the 
+the median changed from 10765 to 10762), the 
 distribution of the data seems to be affected by the imputation process. 
   
 ##Are there differences in activity patterns between weekdays and weekends?
@@ -150,7 +162,8 @@ distribution of the data seems to be affected by the imputation process.
 Let's explore the activity patterns between weekdays and weekends to see whether
 the individual was more active in the weekends or in the weekdays:
 
-```{r weekdays}
+
+```r
 #Convert date variable into Date format
 data$date <- as.Date(data$date)
 #Create variable of day of the week
@@ -167,7 +180,8 @@ weeksteps <- data %>% group_by(interval, fday) %>%
 
 Now let's create the panel time serie plot: 
 
-```{r panelplot}
+
+```r
 p <- ggplot(weeksteps, aes(interval, steps))
 p + geom_line(size = 1, color = "cornflowerblue") + 
         facet_grid(fday ~ .) +
@@ -176,8 +190,9 @@ p + geom_line(size = 1, color = "cornflowerblue") +
         theme(axis.title = element_text(face = "bold", size = 14), 
               plot.title = element_text(face = "bold", size = 20, 
                                         vjust = 1.5))
-
 ```
+
+![](PA1_template_files/figure-html/panelplot-1.png) 
 
 By looking at the panel plot we can say that it seems that the most active days
 were the weekends ones. Further investigation is needed in order to have a 
