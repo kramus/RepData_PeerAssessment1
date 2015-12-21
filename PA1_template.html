@@ -141,9 +141,16 @@ t + geom_line(size = 1, color = &quot;cornflowerblue&quot;) +
 <h2>Imputing missing values</h2>
 <p>The variable steps has multiple missing observations (2304). Let’s see what happen if we imput those values. We are going to imput the NA values by replacing with the mean of steps from the specific 5-minute interval and create a new dataset:</p>
 <pre class="r"><code>data &lt;- as.data.frame(df)
-#Using the means calculated and stored in the dataframe avgsteps:
+#Now let's merge the avgsteps dataset with the new dataset in order
+#to get the variable that contains the average steps taken per interval
+names(avgsteps)[2] &lt;- &quot;steps2&quot;
+data &lt;- merge(data, avgsteps, by.x = &quot;interval&quot;, by.y = &quot;interval&quot;)
+
+#Using the means calculated and stored in steps2 variable:
 data &lt;- within(data, steps &lt;- ifelse(is.na(steps), 
-                                     round(avgsteps$steps), steps))
+                                     round(steps2), steps))
+data$steps2 &lt;- NULL
+
 #What is the mean total number of steps taken per day?
 tsteps &lt;- data %&gt;% group_by(date) %&gt;% summarise_each(funs(sum), steps)
 #Calculating the new mean and median

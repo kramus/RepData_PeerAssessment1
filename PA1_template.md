@@ -115,9 +115,16 @@ from the specific 5-minute interval and create a new dataset:
 
 ```r
 data <- as.data.frame(df)
-#Using the means calculated and stored in the dataframe avgsteps:
+#Now let's merge the avgsteps dataset with the new dataset in order
+#to get the variable that contains the average steps taken per interval
+names(avgsteps)[2] <- "steps2"
+data <- merge(data, avgsteps, by.x = "interval", by.y = "interval")
+
+#Using the means calculated and stored in steps2 variable:
 data <- within(data, steps <- ifelse(is.na(steps), 
-                                     round(avgsteps$steps), steps))
+                                     round(steps2), steps))
+data$steps2 <- NULL
+
 #What is the mean total number of steps taken per day?
 tsteps <- data %>% group_by(date) %>% summarise_each(funs(sum), steps)
 #Calculating the new mean and median
